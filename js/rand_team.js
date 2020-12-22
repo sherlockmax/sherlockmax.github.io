@@ -17,19 +17,22 @@ var app = new Vue({
   },
   mounted() {
     const now = new Date()
-    const m = ((now.getMonth()+1)+"").padStart(2, "0")
-    const d = (now.getDate()+"").padStart(2, "0")
-    this.form.date = m + "/" + d
+    const m = (now.getMonth() + 1 + '').padStart(2, '0')
+    const d = (now.getDate() + '').padStart(2, '0')
+    this.form.date = m + '/' + d
 
     const originSetting = Cookies.get('MaxBGGroupSetting')
 
-    if(originSetting){
+    if (originSetting) {
       this.form = JSON.parse(originSetting)
     }
 
     this.changeSettings()
   },
   methods: {
+    goHome: function() {
+      window.location.href = 'index.html'
+    },
     makeTeams: function (fixedTeam) {
       let arr = this.shuffleArray(this.members)
       let team = []

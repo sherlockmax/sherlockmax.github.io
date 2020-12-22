@@ -1,0 +1,15 @@
+.el-tag {
+    width: 80px;
+    text-align: center;
+    margin: 1px;
+}
+
+.court {
+    display: inline-block;
+    width: 200px;
+    text-align: center;
+}
+
+.same-width-font {
+    font-family: "Andale Mono", "monospace" !important;
+}

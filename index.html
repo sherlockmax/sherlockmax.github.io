@@ -5,45 +5,19 @@
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" />
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
-    <div id="app" v-loading="loading">
-      <div class="banner">
-        <span class="same-width-font">{{ form.date }} (三) {{ form.title }} 選手分組表</span>
-        <i class="el-icon-refresh-right banner-refresh" @click="changeSettings"></i>
-        <i class="el-icon-setting banner-setting" @click="dialogFormVisible = true"></i>
-      </div>
-      <div class="content">
-        <div class="court" v-for="(teamGroup,t) in teams">
-          <div class="same-width-font">{{ times[t] }}</div>
-          <div v-for="(team,i) in teamGroup">
-            <span class="same-width-font">{{i+1}}</span>
-            <el-tag :type="tagType[i%tagType.length]" effect="dark" v-for="m in team">{{m}}</el-tag>
-          </div>
-        </div>
-      </div>
-      <el-dialog title="活動設定" :visible.sync="dialogFormVisible">
-        <el-form :model="form">
-          <el-form-item label="活動標題" :label-width="formLabelWidth">
-            <el-input placeholder="輸入標題" v-model="form.title" clearable> </el-input>
-          </el-form-item>
-          <el-form-item label="活動日期" :label-width="formLabelWidth">
-            <el-date-picker v-model="form.date" type="date" placeholder="選擇日期" format="MM/dd" value-format="MM/dd">
-            </el-date-picker>
-          </el-form-item>
-          <el-form-item label="人員名單" :label-width="formLabelWidth">
-            <el-input type="textarea" :rows="5" placeholder="請輸入人名清單，一個人一行" v-model="form.memberTxt">
-            </el-input>
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="changeSettings">确 定</el-button>
-        </div>
-      </el-dialog>
+    <div id="app">
+      <el-row :gutter="20">
+        <el-col :span="8" v-for="(t, k) in tools" :key="k">
+          <el-card shadow="always">
+            {{ t.name }}
+            <el-button style="float: right; padding: 3px 0" type="text" @click="goPath(t.path)">前往</el-button>
+          </el-card>
+        </el-col>
+      </el-row>
     </div>
-
-    <script src="main.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>
