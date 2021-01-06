@@ -8,7 +8,8 @@ var app = new Vue({
     teams: [],
     dialogFormVisible: false,
     form: {
-      memberTxt: 'andy\njoey\nqueen\nking'
+      memberTxt: 'andy\njoey\nqueen\nking',
+      isRandTeam: false
     },
     formLabelWidth: '120px'
   },
@@ -30,7 +31,9 @@ var app = new Vue({
         this.members.push('-')
       }
 
-      this.members = this.shuffleArray(this.members)
+      if (this.form.isRandTeam) {
+        this.members = this.shuffleArray(this.members)
+      }
 
       this.teams = []
       this.members.forEach((v, i) => {

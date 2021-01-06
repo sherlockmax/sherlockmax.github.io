@@ -21,6 +21,13 @@
       <div id="chart_div"></div>
       <el-dialog title="活動設定" :visible.sync="dialogFormVisible">
         <el-form :model="form">
+          <el-form-item label="是否隨機組隊" :label-width="formLabelWidth">
+            <el-switch
+              v-model="form.isRandTeam"
+              active-color="#13ce66"
+              inactive-color="#ff4949">
+            </el-switch>
+          </el-form-item>
           <el-form-item label="人員名單" :label-width="formLabelWidth">
             <el-input type="textarea" :rows="5" placeholder="請輸入人名清單，一個人一行" v-model="form.memberTxt">
             </el-input>
