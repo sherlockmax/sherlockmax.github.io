@@ -85,12 +85,12 @@ var app = new Vue({
       for (let i = 0; i <= teams.length; i += 2) {
         if (teams[i]) {
           childId = totalAmount + '-' + (i + 1)
-          dataRows.push([{ v: childId, f: teams[i].join(',') }, ''])
+          dataRows.push([{ v: childId, f: teams[i].join('</br>') }, ''])
         }
 
         if (teams[i + 1]) {
           childId = totalAmount + '-' + (i + 2)
-          dataRows.push([{ v: childId, f: teams[i + 1].join(',') }, ''])
+          dataRows.push([{ v: childId, f: teams[i + 1].join('</br>') }, ''])
         }
       }
 
