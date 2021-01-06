@@ -46,6 +46,7 @@ var app = new Vue({
       this.dataRows = this.fillTree(this.dataRows)
 
       this.refreshChart(this.dataRows)
+      this.dialogFormVisible = false
     },
     refreshChart(dataRows) {
       google.charts.load('current', { packages: ['orgchart'] })
