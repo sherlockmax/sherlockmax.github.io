@@ -142,7 +142,11 @@ var app = new Vue({
 
       this.dataRows.forEach((e, index) => {
         if (e[0].v == parentId) {
-          this.dataRows[index][0].f = element[0].f
+          if (this.dataRows[index][0].f == element[0].f) {
+            this.dataRows[index][0].f = ' '
+          } else {
+            this.dataRows[index][0].f = element[0].f
+          }
           return
         }
       })
