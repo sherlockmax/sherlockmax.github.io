@@ -10,16 +10,17 @@ var app = new Vue({
     dialogFormVisible: false,
     form: {
       title: '羽球團',
-      date: '07/01',
+      date: '2021.02.26',
       memberTxt: 'andy\njoey\nqueen\nking'
     },
     formLabelWidth: '120px'
   },
   mounted() {
     const now = new Date()
+    const y = now.getFullYear()
     const m = (now.getMonth() + 1 + '').padStart(2, '0')
     const d = (now.getDate() + '').padStart(2, '0')
-    this.form.date = m + '/' + d
+    this.form.date = y + '.' + m + '.' + d
 
     const originSetting = Cookies.get('MaxBGGroupSetting')
 
@@ -49,8 +50,6 @@ var app = new Vue({
         })
       }
 
-      console.log(arr)
-
       arr.forEach(p => {
         team.push(p)
         if (team.length >= 2) {
@@ -64,6 +63,16 @@ var app = new Vue({
       })
 
       teams = this.shuffleArray(teams)
+      let teamLatestIndex = teams.length-1
+      teams.forEach((t, i) => {
+        if (i == teamLatestIndex) {
+          return
+        }
+        if (t[0] == '<->' || t[1] == '<->') {
+          teams[i] = teams[teamLatestIndex]
+          teams[teamLatestIndex] = t
+        }
+      })
 
       return teams
     },
@@ -95,7 +104,7 @@ var app = new Vue({
       this.members = this.form.memberTxt.split('\n')
 
       if (this.members.length % 2 == 1) {
-        this.members.push('-')
+        this.members.push('<->')
       }
 
       this.members.sort()

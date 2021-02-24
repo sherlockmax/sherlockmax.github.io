@@ -11,7 +11,7 @@
   <body>
     <div id="app" v-loading="loading">
       <div class="banner">
-        <span class="same-width-font">{{ form.date }} (三) {{ form.title }} 選手分組表</span>
+        <span class="same-width-font">{{ form.date }} {{ form.title }}分組表</span>
         <i class="el-icon-refresh-right banner-refresh" @click="changeSettings"></i>
         <i class="el-icon-setting banner-setting" @click="dialogFormVisible = true"></i>
         <i class="el-icon-s-home banner-home" @click="goHome"></i>
@@ -35,13 +35,13 @@
             </el-date-picker>
           </el-form-item>
           <el-form-item label="人員名單" :label-width="formLabelWidth">
-            <el-input type="textarea" :rows="5" placeholder="請輸入人名清單，一個人一行" v-model="form.memberTxt">
+            <el-input type="textarea" :rows="5" placeholder="請輸入人員清單，一個人一行" v-model="form.memberTxt">
             </el-input>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="changeSettings">确 定</el-button>
+          <el-button type="primary" @click="changeSettings">確 定</el-button>
         </div>
       </el-dialog>
     </div>
