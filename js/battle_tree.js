@@ -1,33 +1,33 @@
-var app = new Vue({
+new Vue({
   el: '#app',
-  data: {
-    chart: null,
-    dataRows: [],
-    parentMap: {},
-    members: [],
-    teams: [],
-    dialogFormVisible: false,
-    form: {
-      memberTxt: 'andy\njoey\nqueen\nking',
-      isRandTeam: false
-    },
-    formLabelWidth: '120px'
+  data: function () {
+    return {
+      chart: null,
+      dataRows: [],
+      parentMap: {},
+      members: [],
+      teams: [],
+      dialogFormVisible: false,
+      form: {
+        memberTxt: 'andy\njoey\nqueen\nking',
+        isRandTeam: false
+      },
+      formLabelWidth: '120px'
+    }
   },
-  mounted() {
+  mounted: function () {
     this.changeSettings()
-    this.dataRows = this.initTree(this.teams)
-    this.dataRows = this.fillTree(this.dataRows)
-
-    this.refreshChart(this.dataRows)
   },
   methods: {
     goHome: function () {
       window.location.href = 'index.html'
     },
-    changeSettings() {
-      this.members = this.form.memberTxt.split('\n')
+    changeSettings: function () {
+      this.members = this.form.memberTxt.split('\n').filter(function (member) {
+        return member.trim() !== ''
+      })
 
-      if (this.members.length % 2 == 1) {
+      if (this.members.length % 2 === 1) {
         this.members.push('-')
       }
 
@@ -36,97 +36,109 @@ var app = new Vue({
       }
 
       this.teams = []
-      this.members.forEach((v, i) => {
-        if (i % 2 == 0) {
-          this.teams.push([this.members[i], this.members[i + 1]])
-        }
-      })
 
+      for (var i = 0; i < this.members.length; i += 2) {
+        this.teams.push([this.members[i], this.members[i + 1]])
+      }
+
+      this.parentMap = {}
       this.dataRows = this.initTree(this.teams)
       this.dataRows = this.fillTree(this.dataRows)
-
       this.refreshChart(this.dataRows)
       this.dialogFormVisible = false
     },
-    refreshChart(dataRows) {
-      google.charts.load('current', { packages: ['orgchart'] })
-      google.charts.setOnLoadCallback(drawChart)
+    refreshChart: function (dataRows) {
+      var _this = this
 
-      _this = this
-      function drawChart() {
+      google.charts.load('current', { packages: ['orgchart'] })
+      google.charts.setOnLoadCallback(function () {
         var data = new google.visualization.DataTable()
+
         data.addColumn('string', 'Name')
         data.addColumn('string', 'Manager')
-        // data.addColumn('string', 'ToolTip')
 
-        // For each orgchart box, provide the name, manager, and tooltip to show.
         data.addRows(dataRows)
 
-        // Create the chart.
-        _this.chart = new google.visualization.OrgChart(document.getElementById('chart_div'))
-        google.visualization.events.addListener(_this.chart, 'select', _this.setWinner)
-        // Draw the chart, setting the allowHtml option to true for the tooltips.
+        _this.chart = new google.visualization.OrgChart(
+          document.getElementById('chart_div')
+        )
+
+        google.visualization.events.addListener(_this.chart, 'select', function () {
+          _this.setWinner()
+        })
+
         _this.chart.draw(data, { allowHtml: true })
-      }
+      })
     },
-    getDeepLevel(teamAmount, totalLevel) {
-      totalLevel++
-      checkAmount = teamAmount / 2
+    getDeepLevel: function (teamAmount, totalLevel) {
+      var nextLevel = totalLevel + 1
+      var checkAmount = teamAmount / 2
 
       if (checkAmount < 1) {
-        return totalLevel
+        return nextLevel
       }
 
-      return this.getDeepLevel(checkAmount, totalLevel)
+      return this.getDeepLevel(checkAmount, nextLevel)
     },
-    initTree(teams) {
-      dataRows = []
-      totalAmount = this.getDeepLevel(teams.length, 0)
-      // create base
-      for (let i = 0; i <= teams.length; i += 2) {
-        if (teams[i]) {
-          childId = totalAmount + '-' + (i + 1)
-          dataRows.push([{ v: childId, f: teams[i].join('</br>') }, ''])
-        }
+    initTree: function (teams) {
+      var dataRows = []
+      var totalAmount = this.getDeepLevel(teams.length, 0)
 
-        if (teams[i + 1]) {
-          childId = totalAmount + '-' + (i + 2)
-          dataRows.push([{ v: childId, f: teams[i + 1].join('</br>') }, ''])
-        }
+      for (var i = 0; i < teams.length; i++) {
+        var childId = totalAmount + '-' + (i + 1)
+
+        dataRows.push([
+          {
+            v: childId,
+            f: teams[i].join('<br>')
+          },
+          ''
+        ])
       }
 
       return dataRows
     },
-    fillTree(dataRows) {
-      if (dataRows.length % 2 == 0) {
-        tmp = dataRows[dataRows.length - 1]
+    fillTree: function (dataRows) {
+      if (dataRows.length % 2 === 0 && dataRows.length >= 2) {
+        var tmp = dataRows[dataRows.length - 1]
         dataRows[dataRows.length - 1] = dataRows[dataRows.length - 2]
         dataRows[dataRows.length - 2] = tmp
       }
 
-      groupKey = 1
-      groupMap = {}
-      hasNoParentAmount = 0
-      dataRows.forEach((element, index) => {
-        if (element[1].length <= 0) {
-          key = element[0].v
-          level = parseInt(key.split('-')[0]) - 1
-          parentId = level + '-' + groupKey
+      var groupKey = 1
+      var groupMap = {}
+      var hasNoParentAmount = 0
+
+      dataRows.forEach(
+        function (element, index) {
+          if (element[1].length > 0) {
+            return
+          }
+
+          var key = element[0].v
+          var level = parseInt(key.split('-')[0], 10) - 1
+          var parentId = level + '-' + groupKey
+
           element[1] = parentId
           dataRows[index] = element
+          this.parentMap[key] = parentId
 
           if (!groupMap[parentId]) {
-            this.parentMap[key] = parentId
-            dataRows.push([{ v: parentId, f: ' ' }, ''])
-            hasNoParentAmount++
+            dataRows.push([
+              {
+                v: parentId,
+                f: ' '
+              },
+              ''
+            ])
             groupMap[parentId] = 1
+            hasNoParentAmount++
           } else {
-            this.parentMap[key] = parentId
             groupMap[parentId]++
             groupKey++
           }
-        }
-      })
+        }.bind(this)
+      )
 
       if (hasNoParentAmount <= 1) {
         return dataRows
@@ -134,31 +146,45 @@ var app = new Vue({
 
       return this.fillTree(dataRows)
     },
-    setWinner() {
-      var selection = this.chart.getSelection()
-      element = this.dataRows[selection[0].row]
-      key = element[0].v
-      v = element[1]
-      parentId = this.parentMap[key]
+    setWinner: function () {
+      if (!this.chart) {
+        return
+      }
 
-      this.dataRows.forEach((e, index) => {
-        if (e[0].v == parentId) {
-          if (this.dataRows[index][0].f == element[0].f) {
+      var selection = this.chart.getSelection()
+
+      if (!selection || selection.length === 0 || selection[0].row == null) {
+        return
+      }
+
+      var element = this.dataRows[selection[0].row]
+      var key = element[0].v
+      var parentId = this.parentMap[key]
+
+      if (!parentId) {
+        return
+      }
+
+      this.dataRows.forEach(function (e, index) {
+        if (e[0].v === parentId) {
+          if (this.dataRows[index][0].f === element[0].f) {
             this.dataRows[index][0].f = ' '
           } else {
             this.dataRows[index][0].f = element[0].f
           }
-          return
         }
-      })
+      }, this)
 
       this.refreshChart(this.dataRows)
     },
     shuffleArray: function (originArr) {
-      let arr = this.deepClone(originArr)
-      for (let i = originArr.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1))
-        ;[arr[i], arr[j]] = [arr[j], arr[i]]
+      var arr = this.deepClone(originArr)
+
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1))
+        var temp = arr[i]
+        arr[i] = arr[j]
+        arr[j] = temp
       }
 
       return arr
