@@ -1,82 +1,152 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>隨機分組工具</title>
+new Vue({
+  el: '#app',
+  data: function () {
+    return {
+      loading: false,
+      members: [],
+      teams: [],
+      teamHistory: [],
+      tagType: ['', 'success', 'info', 'warning', 'danger'],
+      times: ['18:00 ~ 18:30', '18:30 ~ 19:00', '19:00 ~ 19:30'],
+      dialogFormVisible: false,
+      form: {
+        title: '羽球團',
+        date: '',
+        memberTxt: 'andy\njoey\nqueen\nking'
+      },
+      formLabelWidth: '120px'
+    }
+  },
+  mounted: function () {
+    var now = new Date()
+    var y = now.getFullYear()
+    var m = String(now.getMonth() + 1).padStart(2, '0')
+    var d = String(now.getDate()).padStart(2, '0')
 
-    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3/dist/js.cookie.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
-    <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+    this.form.date = y + '.' + m + '.' + d
 
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css"
-    />
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/rand_team.css" />
-  </head>
-  <body>
-    <div id="app" v-loading="loading">
-      <div class="banner">
-        <span class="same-width-font">{{ form.date }} {{ form.title }}分組表</span>
-        <i class="el-icon-refresh-right banner-refresh" @click="changeSettings"></i>
-        <i class="el-icon-setting banner-setting" @click="dialogFormVisible = true"></i>
-        <i class="el-icon-s-home banner-home" @click="goHome"></i>
-      </div>
+    var originSetting = Cookies.get('MaxBGGroupSetting')
 
-      <div class="content">
-        <div class="court" v-for="(teamGroup, t) in teams" :key="t">
-          <div class="same-width-font">{{ times[t] }}</div>
+    if (originSetting) {
+      try {
+        this.form = JSON.parse(originSetting)
+      } catch (error) {}
+    }
 
-          <div v-for="(team, i) in teamGroup" :key="i">
-            <span class="same-width-font">{{ i + 1 }}</span>
-            <el-tag
-              v-for="(m, memberIndex) in team"
-              :key="memberIndex + '-' + m"
-              :type="tagType[i % tagType.length]"
-              effect="dark"
-            >
-              {{ m }}
-            </el-tag>
-          </div>
-        </div>
-      </div>
+    this.changeSettings()
+  },
+  methods: {
+    goHome: function () {
+      window.location.href = 'index.html'
+    },
+    makeTeams: function (fixedTeam) {
+      var arr = this.shuffleArray(this.members)
+      var team = []
+      var teams = []
 
-      <el-dialog title="活動設定" :visible.sync="dialogFormVisible">
-        <el-form :model="form">
-          <el-form-item label="活動標題" :label-width="formLabelWidth">
-            <el-input placeholder="輸入標題" v-model="form.title" clearable></el-input>
-          </el-form-item>
+      if (fixedTeam.length > 0) {
+        fixedTeam.forEach(function (p) {
+          var index = arr.indexOf(p)
+          if (index > -1) {
+            arr.splice(index, 1)
+          }
+          arr.push(p)
+        })
+      }
 
-          <el-form-item label="活動日期" :label-width="formLabelWidth">
-            <el-date-picker
-              v-model="form.date"
-              type="date"
-              placeholder="選擇日期"
-              format="yyyy.MM.dd"
-              value-format="yyyy.MM.dd"
-            >
-            </el-date-picker>
-          </el-form-item>
+      arr.forEach(
+        function (p) {
+          team.push(p)
 
-          <el-form-item label="人員名單" :label-width="formLabelWidth">
-            <el-input
-              type="textarea"
-              :rows="5"
-              placeholder="請輸入人員清單，一個人一行"
-              v-model="form.memberTxt"
-            >
-            </el-input>
-          </el-form-item>
-        </el-form>
+          if (team.length >= 2) {
+            team.sort()
 
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="dialogFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="changeSettings">確 定</el-button>
-        </div>
-      </el-dialog>
-    </div>
+            if (!this.isDuplicate(team)) {
+              this.teamHistory.push(team.slice())
+              teams.push(team.slice())
+            }
 
-    <script src="js/rand_team.js"></script>
-  </body>
-</html>
+            team = []
+          }
+        }.bind(this)
+      )
+
+      teams = this.shuffleArray(teams)
+
+      var teamLatestIndex = teams.length - 1
+
+      teams.forEach(function (t, i) {
+        if (i === teamLatestIndex) {
+          return
+        }
+
+        if (t[0] === '<->' || t[1] === '<->') {
+          var tmp = teams[i]
+          teams[i] = teams[teamLatestIndex]
+          teams[teamLatestIndex] = tmp
+        }
+      })
+
+      return teams
+    },
+    isDuplicate: function (team) {
+      var teamKey = JSON.stringify(team)
+
+      return this.teamHistory.some(function (oTeam) {
+        return JSON.stringify(oTeam) === teamKey
+      })
+    },
+    shuffleArray: function (originArr) {
+      var arr = this.deepClone(originArr)
+
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1))
+        var temp = arr[i]
+        arr[i] = arr[j]
+        arr[j] = temp
+      }
+
+      return arr
+    },
+    deepClone: function (arr) {
+      return JSON.parse(JSON.stringify(arr))
+    },
+    changeSettings: function () {
+      var _this = this
+
+      this.loading = true
+      this.members = this.form.memberTxt.split('\n').filter(function (member) {
+        return member.trim() !== ''
+      })
+
+      if (this.members.length % 2 === 1) {
+        this.members.push('<->')
+      }
+
+      this.members.sort()
+      this.teams = []
+      this.teamHistory = []
+
+      setTimeout(function () {
+        var wholeTeams = []
+        var maxCount = 50
+
+        while (wholeTeams.length < 3 && maxCount > 0) {
+          maxCount--
+
+          var teams = _this.makeTeams([])
+
+          if (teams.length === _this.members.length / 2) {
+            wholeTeams.push(teams)
+          }
+        }
+
+        Cookies.set('MaxBGGroupSetting', JSON.stringify(_this.form))
+
+        _this.dialogFormVisible = false
+        _this.teams = wholeTeams
+        _this.loading = false
+      }, 200)
+    }
+  }
+})
